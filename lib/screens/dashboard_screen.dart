@@ -1,5 +1,6 @@
 import 'package:d_app/models/glucose_entry.dart';
 import 'package:d_app/screens/add_entry_screen.dart';
+import 'package:d_app/screens/diabetes_info_screen.dart';
 import 'package:d_app/utils/general_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -13,13 +14,21 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  List<GlucoseEntry> glucoseData = [
-    GlucoseEntry(date: DateTime.now().subtract(Duration(hours: 4)), value: 5.4),
-    GlucoseEntry(date: DateTime.now().subtract(Duration(hours: 2)), value: 6.1),
-    GlucoseEntry(date: DateTime.now(), value: 5.8),
-  ];
+  List<GlucoseEntry> glucoseData = [];
 
-  int? _selectedValue;
+  List<String> radioOptions = ['1 Тип', '2 Тип', 'Гестационный'];
+  String _selectedOption = '1 Тип';
+  String? _currentDiabetesType;
+  // int? _selectedValue;
+
+  List<GlucoseEntry> getTodayEntries() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return glucoseData.where((entry) {
+      final entryDate = DateTime(entry.date.year, entry.date.month, entry.date.day);
+      return entryDate == today;
+    }).toList()..sort((a, b) => b.date.compareTo(a.date));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,19 +36,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         backgroundColor: GeneralTheme.primary,
         title: Text(
+          style: TextStyle(color: Colors.black),
           glucoseData.isNotEmpty
               ? 'Текущий уровень: ${glucoseData.last.value.toStringAsFixed(1)}'
               : 'Нет данных',
         ),
         actions: [
-          IconButton(onPressed: () {}, icon: Icon(Icons.search)),
+          IconButton(onPressed: () {}, icon: Icon(Icons.search, color: Colors.black,)),
           IconButton(
             onPressed:
                 () => Navigator.push(
                   context,
                   CupertinoPageRoute(builder: (context) => AddEntryScreen()),
                 ),
-            icon: Icon(Icons.add),
+            icon: Icon(Icons.add, color: Colors.black,),
           ),
         ],
       ),
@@ -49,33 +59,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Column(
               children: [
-                const Text('Ваш тип диабета', style: GeneralTheme.titleStyle),
+                const Text('Ваш тип', style: GeneralTheme.titleStyle),
 
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    RadioListTile<int>(
-                      activeColor: GeneralTheme.primary,
-                      title: const Text('1 Тип'),
-                      value: 1,
-                      groupValue: _selectedValue,
-                      onChanged: (value) => updateValue(value),
-                    ),
-                    RadioListTile<int>(
-                      activeColor: GeneralTheme.primary,
-                      title: const Text('2 Тип'),
-                      value: 2,
-                      groupValue: _selectedValue,
-                      onChanged: (value) => updateValue(value),
-                    ),
+                    for (var option in radioOptions)
+                      RadioListTile(activeColor: GeneralTheme.primary, title: Text(option), value: option, groupValue: _selectedOption, onChanged: (value) {
+                        setState(() {
+                          _selectedOption = value!;
+                        });
+                      }),
 
                     const SizedBox(height: 20),
 
-                    generalButton(() {
+                    Row(children: [
+                      generalButton(() {
+                      setState(() {
+                        _currentDiabetesType = _selectedOption;
+                        debugPrint(_currentDiabetesType);
+                      });
                       ScaffoldMessenger.of(context).clearSnackBars();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          duration: Duration(seconds: 5),
+                          duration: Duration(milliseconds: 500),
                           content: Row(
                             children: [
                               Icon(
@@ -85,14 +92,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                               const SizedBox(width: 10),
 
-                              const Text(
-                                'Сохранено! Вы также можете изменить свой вариант в настройках',
+                              Expanded(
+                                child: const Text(
+                                  'Сохранено! Вы также можете изменить свой вариант в настройках',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ],
                           ),
                         ),
                       );
                     }, 'Сохранить вариант'),
+
+                    const SizedBox(width: 10,),
+
+                    generalButton(() {Navigator.push(context, CupertinoPageRoute(builder: (context) => DiabetesInfoScreen()));}, 'Информация'),
+                    ],)
                   ],
                 ),
               ],
@@ -102,18 +117,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             Text('Информация за сегодня', style: GeneralTheme.titleStyle),
 
-            Expanded(
-              child: ListView.builder(
-                itemCount: glucoseData.length,
-                itemBuilder: (context, index) {
-                  final entry = glucoseData[index];
-                  return ListTile(
-                    title: Text('${entry.value.toStringAsFixed(1)} ммоль/л'),
-                    subtitle: Text(DateFormat('HH:mm').format(entry.date)),
-                  );
-                },
-              ),
-            ),
+            Expanded(child: Builder(builder: (context) {
+              final todayEntries = getTodayEntries();
+              if (todayEntries.isEmpty) {
+                return Center(child: const Text('У вас пока нет данных за сегодня'),);
+              } else {
+                return ListView.separated(itemBuilder: (context, index) {
+                  final entry = todayEntries[index];
+                  return ListTile(title: Text('${entry.value.toStringAsFixed(1)} ммоль/г'), subtitle: Text(DateFormat('HH:mm').format(entry.date)),);
+                }, separatorBuilder: (context, index) => Divider(), itemCount: todayEntries.length);
+              }
+            }))
           ],
         ),
       ),
@@ -131,22 +145,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             });
           }
         },
-        child: Icon(Icons.add),
+        child: Icon(Icons.add, color: Colors.black,),
       ),
     );
   }
 
   ElevatedButton generalButton(Function()? onPressed, String text) {
     return ElevatedButton(
-      style: ElevatedButton.styleFrom(backgroundColor: GeneralTheme.primary),
+      style: ElevatedButton.styleFrom(backgroundColor: GeneralTheme.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5))),
       onPressed: onPressed,
-      child: Text(text, style: TextStyle(color: GeneralTheme.secondary)),
+      child: Text(text, style: TextStyle(color: Colors.black)),
     );
-  }
-
-  void updateValue(int? value) {
-    setState(() {
-      _selectedValue = value;
-    });
   }
 }

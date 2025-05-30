@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+
+class GlucoseEntry {
+  final DateTime date;
+  final double value;
+
+  GlucoseEntry({required this.date, required this.value});
+}
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -11,14 +19,25 @@ class CalendarScreen extends StatefulWidget {
 class _CalendarScreenState extends State<CalendarScreen> {
   DateTime today = DateTime.now();
 
+  final List<GlucoseEntry> glucoseData = [];
+
+  // выбор дня
   void _onDaySelected(DateTime day, DateTime focusedDay) {
     setState(() {
       today = day;
     });
   }
 
+  List<GlucoseEntry> getEntriesForDay(DateTime day) {
+    return glucoseData.where((entry) {
+      return entry.date.year == day.year && entry.date.month == day.month && entry.date.day == day.day;
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final selectedEntries = getEntriesForDay(today);
+
     return Scaffold(
       // appBar: PreferredSize(
       //   preferredSize: Size.fromHeight(100.0),
@@ -52,6 +71,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 onDaySelected: _onDaySelected,
               ),
             ),
+
+            const SizedBox(height: 20,),
+
+            Text('Записи за ${DateFormat('yyyy-MM-dd').format(today)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+          
+            Expanded(child: selectedEntries.isEmpty ? const Center(child: Text('Нет данных за этот день')) : ListView.builder(itemCount: selectedEntries.length, itemBuilder: (context, index) {
+              final entry = selectedEntries[index];
+              return ListTile(title: Text('${entry.value.toStringAsFixed(1)} ммоль/г'), subtitle: Text(DateFormat('HH:mm').format(entry.date)),);
+            },)),
           ],
         ),
       ),

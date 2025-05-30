@@ -1,4 +1,5 @@
-import 'package:d_app/second_navigation.dart';
+import 'package:d_app/main_navigation.dart';
+// import 'package:d_app/second_navigation.dart';
 import 'package:d_app/themes/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -26,7 +27,7 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: 'D_APP',
       theme: Provider.of<ThemeProvider>(context).themeData,
-      home: const SecondNavigation(),
+      home: const MainNavigation(),
     );
   }
 }
