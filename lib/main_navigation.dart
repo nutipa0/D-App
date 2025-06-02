@@ -1,4 +1,4 @@
-import 'package:d_app/screens/add_entry_screen.dart';
+// import 'package:d_app/screens/add_entry_screen.dart';
 import 'package:d_app/screens/calendar_screen.dart';
 import 'package:d_app/screens/dashboard_screen.dart';
 import 'package:d_app/screens/settings_screen.dart';
@@ -31,7 +31,11 @@ class _MainNavigationState extends State<MainNavigation> {
     //   icon: Icon(Icons.add_outlined),
     //   label: 'Добавить запись',
     // ),
-    NavigationDestination(selectedIcon: Icon(Icons.calendar_month), icon: Icon(Icons.calendar_month_outlined), label: 'Календарь'),
+    NavigationDestination(
+      selectedIcon: Icon(Icons.calendar_month),
+      icon: Icon(Icons.calendar_month_outlined),
+      label: 'Календарь',
+    ),
     NavigationDestination(
       selectedIcon: Icon(Icons.settings),
       icon: Icon(Icons.settings_outlined),

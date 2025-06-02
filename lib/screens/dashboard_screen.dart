@@ -25,9 +25,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     return glucoseData.where((entry) {
-      final entryDate = DateTime(entry.date.year, entry.date.month, entry.date.day);
-      return entryDate == today;
-    }).toList()..sort((a, b) => b.date.compareTo(a.date));
+        final entryDate = DateTime(
+          entry.date.year,
+          entry.date.month,
+          entry.date.day,
+        );
+        return entryDate == today;
+      }).toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
   }
 
   @override
@@ -42,14 +47,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               : 'Нет данных',
         ),
         actions: [
-          IconButton(onPressed: () {}, icon: Icon(Icons.search, color: Colors.black,)),
           IconButton(
-            onPressed:
-                () => Navigator.push(
-                  context,
-                  CupertinoPageRoute(builder: (context) => AddEntryScreen()),
-                ),
-            icon: Icon(Icons.add, color: Colors.black,),
+            onPressed: () {},
+            icon: Icon(Icons.search, color: Colors.black),
           ),
         ],
       ),
@@ -65,49 +65,65 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     for (var option in radioOptions)
-                      RadioListTile(activeColor: GeneralTheme.primary, title: Text(option), value: option, groupValue: _selectedOption, onChanged: (value) {
-                        setState(() {
-                          _selectedOption = value!;
-                        });
-                      }),
+                      RadioListTile(
+                        activeColor: GeneralTheme.primary,
+                        title: Text(option),
+                        value: option,
+                        groupValue: _selectedOption,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedOption = value!;
+                          });
+                        },
+                      ),
 
                     const SizedBox(height: 20),
 
-                    Row(children: [
-                      generalButton(() {
-                      setState(() {
-                        _currentDiabetesType = _selectedOption;
-                        debugPrint(_currentDiabetesType);
-                      });
-                      ScaffoldMessenger.of(context).clearSnackBars();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          duration: Duration(milliseconds: 500),
-                          content: Row(
-                            children: [
-                              Icon(
-                                Icons.check_circle_rounded,
-                                color: Theme.of(context).colorScheme.primary,
+                    Row(
+                      children: [
+                        generalButton(() {
+                          setState(() {
+                            _currentDiabetesType = _selectedOption;
+                            debugPrint(_currentDiabetesType);
+                          });
+                          ScaffoldMessenger.of(context).clearSnackBars();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              duration: Duration(milliseconds: 500),
+                              content: Row(
+                                children: [
+                                  Icon(
+                                    Icons.check_circle_rounded,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                  ),
+
+                                  const SizedBox(width: 10),
+
+                                  Expanded(
+                                    child: const Text(
+                                      'Сохранено! Вы также можете изменить свой вариант в настройках',
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ),
+                            ),
+                          );
+                        }, 'Сохранить вариант'),
 
-                              const SizedBox(width: 10),
+                        const SizedBox(width: 10),
 
-                              Expanded(
-                                child: const Text(
-                                  'Сохранено! Вы также можете изменить свой вариант в настройках',
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }, 'Сохранить вариант'),
-
-                    const SizedBox(width: 10,),
-
-                    generalButton(() {Navigator.push(context, CupertinoPageRoute(builder: (context) => DiabetesInfoScreen()));}, 'Информация'),
-                    ],)
+                        generalButton(() {
+                          Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                              builder: (context) => DiabetesInfoScreen(),
+                            ),
+                          );
+                        }, 'Информация'),
+                      ],
+                    ),
                   ],
                 ),
               ],
@@ -117,17 +133,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             Text('Информация за сегодня', style: GeneralTheme.titleStyle),
 
-            Expanded(child: Builder(builder: (context) {
-              final todayEntries = getTodayEntries();
-              if (todayEntries.isEmpty) {
-                return Center(child: const Text('У вас пока нет данных за сегодня'),);
-              } else {
-                return ListView.separated(itemBuilder: (context, index) {
-                  final entry = todayEntries[index];
-                  return ListTile(title: Text('${entry.value.toStringAsFixed(1)} ммоль/г'), subtitle: Text(DateFormat('HH:mm').format(entry.date)),);
-                }, separatorBuilder: (context, index) => Divider(), itemCount: todayEntries.length);
-              }
-            }))
+            Expanded(
+              child: Builder(
+                builder: (context) {
+                  final todayEntries = getTodayEntries();
+                  if (todayEntries.isEmpty) {
+                    return Center(
+                      child: const Text('У вас пока нет данных за сегодня'),
+                    );
+                  } else {
+                    return ListView.separated(
+                      itemBuilder: (context, index) {
+                        final entry = todayEntries[index];
+                        return ListTile(
+                          title: Text(
+                            '${entry.value.toStringAsFixed(1)} ${_unitText(entry.unit)}',
+                          ),
+                          subtitle: Text(
+                            DateFormat('HH:mm').format(entry.date),
+                          ),
+                        );
+                      },
+                      separatorBuilder: (context, index) => Divider(),
+                      itemCount: todayEntries.length,
+                    );
+                  }
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -145,16 +178,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
             });
           }
         },
-        child: Icon(Icons.add, color: Colors.black,),
+        child: Icon(Icons.add, color: Colors.black),
       ),
     );
   }
 
   ElevatedButton generalButton(Function()? onPressed, String text) {
     return ElevatedButton(
-      style: ElevatedButton.styleFrom(backgroundColor: GeneralTheme.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5))),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: GeneralTheme.primary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+      ),
       onPressed: onPressed,
       child: Text(text, style: TextStyle(color: Colors.black)),
     );
+  }
+
+  String _unitText(MeasureUnit unit) {
+    switch (unit) {
+      case MeasureUnit.mmol:
+        return 'ммоль/л';
+      case MeasureUnit.mgdl:
+        return 'мг/дл';
+    }
   }
 }

@@ -86,7 +86,9 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: GeneralTheme.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5))
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
                   ),
                   onPressed: () {
                     if (_glucoseController.text.isEmpty) {
@@ -104,22 +106,25 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                         ),
                       );
                     }
-              
+
                     final value = double.tryParse(_glucoseController.text);
                     if (value == null) return;
-              
+
                     double convertedValue =
                         _selectedUnit == MeasureUnit.mgdl ? value / 10 : value;
-              
+
                     final newEntry = GlucoseEntry(
                       date: DateTime.now(),
                       value: convertedValue,
                       unit: _selectedUnit!,
                     );
-              
+
                     Navigator.pop(context, newEntry);
                   },
-                  child: const Text("Сохранить", style: TextStyle(color: Colors.black),),
+                  child: const Text(
+                    "Сохранить",
+                    style: TextStyle(color: Colors.black),
+                  ),
                 ),
               ),
             ],
